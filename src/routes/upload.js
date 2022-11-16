@@ -9,6 +9,7 @@
  * GPL 3.0 Licensed
  */
 
+require('dotenv').config();
 const FileUpload = require("../database/Schemas/FileUpload");
 const Route = require("../utils/Route");
 const minio = require('../utils/minio');
@@ -35,7 +36,7 @@ new Route("/upload", "post", async (req, res, app) => {
     const filePath = `${message.guild.id}/${message.channel.id}/${message.id}/${file.name}`;
 
     // limit file size to 25MB
-    if (file.size > 25000000) {
+    if (file.size > process.env.FILE_UPLOAD_LIMIT) {
         return res.status(400).json({
             error: "File Size Too Large"
         });
