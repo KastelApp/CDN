@@ -34,7 +34,8 @@ new Route("/upload", "post", async (req, res, app) => {
     const file = req.files.file;
     const filePath = `${message.guild.id}/${message.channel.id}/${message.id}/${file.name}`;
 
-    if (file.size > 10000000) {
+    // limit file size to 25MB
+    if (file.size > 25000000) {
         return res.status(400).json({
             error: "File Size Too Large"
         });
