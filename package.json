@@ -21,6 +21,7 @@
     "dotenv": "^16.0.3",
     "hyper-express": "^6.4.10",
     "minio": "^7.0.32",
+    "mongoose": "^6.7.2",
     "path-to-regexp": "^6.2.1"
   }
 }

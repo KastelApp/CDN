@@ -5,27 +5,45 @@
  *  ██╔═██╗ ██╔══██║╚════██║   ██║   ██╔══╝  ██║
  * ██║  ██╗██║  ██║███████║   ██║   ███████╗███████╗
  * ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚══════╝╚══════╝
- * Copyright(c) 2022-2023 DarkerInk
  * Copyright© 2022-2023 Ritam Choudhuri(Xcyth)
  * GPL 3.0 Licensed
  */
 
-const { Server } = require('hyper-express');
-const Route = require('./utils/Route');
-const { join } = require('node:path');
-const Routes = Route.loadRoutes(join(__dirname, 'routes'));
-const app = new Server();
-const mongoConnect = require('./database/index');
+const mongoose = require('mongoose');
 
-Route.setRoutes(app)
+const FileUploadSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    path: {
+        type: String,
+        required: true
+    },
+    size: {
+        type: Number,
+        required: true
+    },
+    date: {
+        type: Date,
+        default: Date.now
+    },
+    user: {
+        type: Number,
+        required: true
+    },
+    guild: {
+        type: Number,
+        required: true
+    },
+    channel: {
+        type: Number,
+        required: true
+    },
+    message: {
+        type: Number,
+        required: true
+    }
+});
 
-app.listen(62240)
-.then((socket) => {
-    console.log(`Server is running on 62240`);
-
-    console.log(`Loaded ${Routes.length} routes`);
-})
-.catch((error) => console.error(error));
-
-// Connect to MongoDB
-mongoConnect();
+module.exports = mongoose.model('FileUpload', FileUploadSchema);
