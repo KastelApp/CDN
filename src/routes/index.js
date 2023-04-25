@@ -5,12 +5,12 @@
  *  ██╔═██╗ ██╔══██║╚════██║   ██║   ██╔══╝  ██║
  * ██║  ██╗██║  ██║███████║   ██║   ███████╗███████╗
  * ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚══════╝╚══════╝
- * Copyright© 2022-2023 Ritam Choudhuri(Xcyth)
+ * Copyright(c) 2022-2023 Ritam Choudhuri(Xcyth)
  * GPL 3.0 Licensed
  */
 
-const Route = require("../utils/Route");
+const { Route } = require("@kastelll/core");
 
-new Route('/', 'GET', async (req, res, app) => {
+new Route('/', 'GET', [], async (req, res, app) => {
     res.send('Hello World!');
 });

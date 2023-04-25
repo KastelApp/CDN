@@ -1,5 +1,16 @@
-const Route = require("../utils/Route");
+/* !
+ *   ██╗  ██╗ █████╗ ███████╗████████╗███████╗██╗
+ *   ██║ ██╔╝██╔══██╗██╔════╝╚══██╔══╝██╔════╝██║
+ *  █████╔╝ ███████║███████╗   ██║   █████╗  ██║
+ *  ██╔═██╗ ██╔══██║╚════██║   ██║   ██╔══╝  ██║
+ * ██║  ██╗██║  ██║███████║   ██║   ███████╗███████╗
+ * ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚══════╝╚══════╝
+ * Copyright(c) 2022-2023 Ritam Choudhuri(Xcyth)
+ * GPL 3.0 Licensed
+ */
 
-new Route('/test', 'get', async (req, res, app) => {
-    res.send('Test');
-})
+const { Route } = require("@kastelll/core");
+
+new Route('/test', 'GET', [], async (req, res, app) => {
+    res.send('Hello World!');
+});

@@ -5,45 +5,38 @@
  *  ██╔═██╗ ██╔══██║╚════██║   ██║   ██╔══╝  ██║
  * ██║  ██╗██║  ██║███████║   ██║   ███████╗███████╗
  * ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚══════╝╚══════╝
- * Copyright© 2022-2023 Ritam Choudhuri(Xcyth)
+ * Copyright(c) 2022-2023 DarkerInk
  * GPL 3.0 Licensed
  */
 
-const mongoose = require('mongoose');
+import { Cache } from "../Utils/Classes/Cache";
+import { Snowflake } from "@kastelll/util";
+import { Minio } from "./Utils/Minio";
 
-const FileUploadSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
-    },
-    path: {
-        type: String,
-        required: true
-    },
-    size: {
-        type: Number,
-        required: true
-    },
-    date: {
-        type: Date,
-        default: Date.now
-    },
-    user: {
-        type: Number,
-        required: true
-    },
-    guild: {
-        type: Number,
-        required: true
-    },
-    channel: {
-        type: Number,
-        required: true
-    },
-    message: {
-        type: Number,
-        required: true
+declare global {
+  namespace Express {
+    interface Request {
+      clientIp: string;
     }
-});
 
-module.exports = mongoose.model('FileUpload', FileUploadSchema);
+    interface Application {
+      cache: Cache;
+      ready: boolean
+      snowflake: Snowflake
+      minio: Minio
+    }
+  }
+
+//   declare process env vars
+    namespace NodeJS {
+        interface ProcessEnv {
+            MinioEndpoint: string
+            MinioPort: string
+            MinioAccessKey: string
+            MinioSecretKey: string
+            MinioUseSSL: string
+            MongoUri: string
+            FileUploadLimit: string
+        }
+    }
+}

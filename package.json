@@ -1,7 +1,7 @@
 {
   "name": "cdn",
   "version": "1.0.0",
-  "description": "",
+  "description": "This is the CDN For Kastel, stuff like Images, Videos, etc. will be stored here.",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -18,10 +18,19 @@
   },
   "homepage": "https://github.com/Kastelll/CDN#readme",
   "dependencies": {
+    "@kastelll/core": "^0.2.4",
+    "@kastelll/util": "^0.1.3",
+    "body-parser": "^1.20.2",
     "dotenv": "^16.0.3",
-    "hyper-express": "^6.4.10",
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.0",
     "minio": "^7.0.32",
-    "mongoose": "^6.7.2",
-    "path-to-regexp": "^6.2.1"
-  }
+    "mongoose": "^6.7.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.39.0",
+    "eslint-config-neon": "^0.1.42",
+    "eslint-formatter-pretty": "^5.0.0"
+  },
+  "packageManager": "yarn@3.3.0"
 }
