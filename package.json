@@ -18,8 +18,8 @@
   },
   "homepage": "https://github.com/Kastelll/CDN#readme",
   "dependencies": {
-    "@kastelll/core": "^0.2.4",
-    "@kastelll/util": "^0.1.3",
+    "@kastelll/core": "^0.2.7",
+    "@kastelll/util": "^0.2.1",
     "body-parser": "^1.20.2",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
