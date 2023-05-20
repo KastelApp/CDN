@@ -24,7 +24,7 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-fileupload": "^1.4.0",
-    "minio": "^7.0.32",
+    "minio": "^7.1.0",
     "mongoose": "^6.7.2"
   },
   "devDependencies": {
