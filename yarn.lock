@@ -2284,7 +2284,7 @@ __metadata:
     eslint-formatter-pretty: ^5.0.0
     express: ^4.18.2
     express-fileupload: ^1.4.0
-    minio: ^7.0.32
+    minio: ^7.1.0
     mongoose: ^6.7.2
   languageName: unknown
   linkType: soft
@@ -4949,9 +4949,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minio@npm:^7.0.32":
-  version: 7.0.33
-  resolution: "minio@npm:7.0.33"
+"minio@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "minio@npm:7.1.0"
   dependencies:
     async: ^3.1.0
     block-stream2: ^2.0.0
@@ -4969,8 +4969,8 @@ __metadata:
     through2: ^3.0.1
     web-encoding: ^1.1.5
     xml: ^1.0.0
-    xml2js: ^0.4.15
-  checksum: 2fb1c511a10bacac0382699ca63d0db9a88547c5e9694e2aa77540fd44648bf5df6fa236a0eb3d54f0b4c9a922dfdc05663c520b5067b23a91d12ffe7d116b03
+    xml2js: ^0.5.0
+  checksum: 35ddfd66729b49c4c6a802f9993382f6e4ba084200377b5989e03d65c376674f42b076c101c038f0320ce45d3a2dd449a8799d624b2bda4e8cc8041e7ae1cec8
   languageName: node
   linkType: hard
 
@@ -5888,7 +5888,7 @@ __metadata:
 
 "resolve@patch:resolve@^1.10.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.22.1#~builtin<compat/resolve>":
   version: 1.22.3
-  resolution: "resolve@patch:resolve@npm%3A1.22.3#~builtin<compat/resolve>::version=1.22.3&hash=c3c19d"
+  resolution: "resolve@patch:resolve@npm%3A1.22.3#~builtin<compat/resolve>::version=1.22.3&hash=07638b"
   dependencies:
     is-core-module: ^2.12.0
     path-parse: ^1.0.7
@@ -5901,7 +5901,7 @@ __metadata:
 
 "resolve@patch:resolve@^2.0.0-next.4#~builtin<compat/resolve>":
   version: 2.0.0-next.4
-  resolution: "resolve@patch:resolve@npm%3A2.0.0-next.4#~builtin<compat/resolve>::version=2.0.0-next.4&hash=c3c19d"
+  resolution: "resolve@patch:resolve@npm%3A2.0.0-next.4#~builtin<compat/resolve>::version=2.0.0-next.4&hash=07638b"
   dependencies:
     is-core-module: ^2.9.0
     path-parse: ^1.0.7
@@ -5914,7 +5914,7 @@ __metadata:
 
 "resolve@patch:resolve@~1.19.0#~builtin<compat/resolve>":
   version: 1.19.0
-  resolution: "resolve@patch:resolve@npm%3A1.19.0#~builtin<compat/resolve>::version=1.19.0&hash=c3c19d"
+  resolution: "resolve@patch:resolve@npm%3A1.19.0#~builtin<compat/resolve>::version=1.19.0&hash=07638b"
   dependencies:
     is-core-module: ^2.1.0
     path-parse: ^1.0.6
@@ -6886,13 +6886,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"xml2js@npm:^0.4.15":
-  version: 0.4.23
-  resolution: "xml2js@npm:0.4.23"
+"xml2js@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "xml2js@npm:0.5.0"
   dependencies:
     sax: ">=0.6.0"
     xmlbuilder: ~11.0.0
-  checksum: ca0cf2dfbf6deeaae878a891c8fbc0db6fd04398087084edf143cdc83d0509ad0fe199b890f62f39c4415cf60268a27a6aed0d343f0658f8779bd7add690fa98
+  checksum: 1aa71d62e5bc2d89138e3929b9ea46459157727759cbc62ef99484b778641c0cd21fb637696c052d901a22f82d092a3e740a16b4ce218e81ac59b933535124ea
   languageName: node
   linkType: hard
 
