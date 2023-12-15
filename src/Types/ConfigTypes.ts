@@ -13,7 +13,6 @@ import type { ClientOptions } from "@kastelll/cassandra-driver";
 import type * as Sentry from "@sentry/node";
 
 export interface Server {
-
 	CloudflareAccessOnly: boolean;
 	Domain: string;
 	LocalIps?: string[];

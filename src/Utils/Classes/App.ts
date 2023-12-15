@@ -87,7 +87,7 @@ class App {
 
 	public Args: typeof SupportedArgs = ProcessArgs(SupportedArgs as unknown as string[])
 		.Valid as unknown as typeof SupportedArgs;
-		
+
 	public constructor() {
 		this.ExpressApp = express();
 

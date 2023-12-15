@@ -10,10 +10,10 @@
  */
 
 import type { Turnstile } from "@kastelll/util";
-import type FlagFields from "../Utils/Classes/BitFields/Flags";
-import type GuildMemberFlags from "../Utils/Classes/BitFields/GuildMember";
 import type { GuildMembersTimeouts } from "../Utils/CQL/Types/GuildMember";
 import type PermissionsOverrides from "../Utils/CQL/Types/PermissionsOverides";
+import type FlagFields from "../Utils/Classes/BitFields/Flags";
+import type GuildMemberFlags from "../Utils/Classes/BitFields/GuildMember";
 
 export interface ExpressUser {
 	Bot: boolean;

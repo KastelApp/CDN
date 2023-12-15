@@ -54,7 +54,6 @@ const ScyllaDB: ScyllaDBConfigType = {
 	NetworkTopologyStrategy: {},
 };
 
-
 const Config: ConfigType = {
 	Server,
 	Encryption,
