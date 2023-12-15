@@ -1,36 +1,61 @@
 {
   "name": "cdn",
-  "version": "1.0.0",
-  "description": "This is the CDN For Kastel, stuff like Images, Videos, etc. will be stored here.",
-  "main": "src/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Kastelll/CDN.git"
-  },
-  "keywords": [],
-  "author": "Kastel",
-  "license": "GPL-3.0-or-later",
-  "bugs": {
-    "url": "https://github.com/Kastelll/CDN/issues"
-  },
-  "homepage": "https://github.com/Kastelll/CDN#readme",
+  "description": "A Chatting app like Discord or Guilded.",
+  "version": "0.1.0",
+  "main": "dist/index.js",
   "dependencies": {
-    "@kastelll/core": "^0.2.7",
-    "@kastelll/util": "^0.2.1",
+    "@kastelll/cassandra-driver": "^4.6.18",
+    "@kastelll/util": "^0.2.4",
+    "@sentry/bun": "^7.74.0",
+    "@sentry/node": "^7.74.0",
+    "archiver": "^5.3.2",
     "body-parser": "^1.20.2",
-    "dotenv": "^16.0.3",
+    "cors": "^2.8.5",
+    "deep-equal": "^2.2.2",
     "express": "^4.18.2",
-    "express-fileupload": "^1.4.0",
-    "minio": "^7.1.0",
-    "mongoose": "^6.7.2"
+    "geoip-lite": "^1.4.7",
+    "nodemailer": "^6.9.4",
+    "simple-git": "^3.19.1",
+    "undici": "^5.23.0"
   },
   "devDependencies": {
-    "eslint": "^8.39.0",
-    "eslint-config-neon": "^0.1.42",
-    "eslint-formatter-pretty": "^5.0.0"
+    "@commitlint/cli": "^17.7.1",
+    "@commitlint/config-angular": "^17.7.0",
+    "@types/archiver": "^5.3.2",
+    "@types/cors": "^2.8.13",
+    "@types/deep-equal": "^1.0.1",
+    "@types/express": "^4.17.17",
+    "@types/nodemailer": "^6.4.9",
+    "bun-types": "^1.0.18",
+    "eslint": "^8.47.0",
+    "eslint-config-neon": "^0.1.47",
+    "eslint-formatter-pretty": "^5.0.0",
+    "prettier": "^3.0.2"
   },
-  "packageManager": "yarn@3.3.0"
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "lint": "prettier --check . && eslint src --ext .js,.ts --format=pretty",
+    "format": "prettier --write . && eslint src --ext .js,.ts --fix --format=pretty"
+  },
+  "keywords": [
+    "chatting"
+  ],
+  "engines": {
+    "node": "^18.0.0",
+    "npm": "^8.0.0"
+  },
+  "contributors": [
+    {
+      "email": "darkerinker@gmail.com",
+      "name": "DarkerInk"
+    }
+  ],
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KastelApp/CDN.git"
+  },
+  "optionalDependencies": {
+    "whois-json": "^2.0.4"
+  }
 }

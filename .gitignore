@@ -1,4 +1,46 @@
+# Packages
 node_modules/
-.env
-test.js
-.yarn
+
+# Log files
+logs/
+*.log
+npm-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+
+# Configs
+Constants.ts
+Config.ts
+
+# Distribution
+dist/
+
+# Temporary files
+.tmp/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.turbo
+.npmrc
+tsconfig.tsbuildinfo
+scripts/
+bin/
+
+# Developer Tests
+dtests/
+
+# Yarn
+.pnp.*
+.yarn/
+
+# Cache
+.prettiercache
+.eslintcache
+
+# Old Stuff
+oldApiRoutes/
+old/
