@@ -10,8 +10,8 @@
  */
 
 import type { Request, Response } from "express";
-import type App from "../Utils/Classes/App";
-import Route from "../Utils/Classes/Route.ts";
+import type App from "@/Utils/Classes/App";
+import Route from "@/Utils/Classes/Route.ts";
 
 export default class Main extends Route {
 	public constructor(App: App) {

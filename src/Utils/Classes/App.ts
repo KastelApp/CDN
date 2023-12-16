@@ -85,6 +85,23 @@ class App {
 
 	public Repl: Repl;
 
+	// first string is an encrypted file id which the client uses to fetch the presigned url (cloudflare)
+	// the other string is the temporary url
+	public PreSignedUrls: Map<string, {
+		Expires: number;
+		Key: string;
+		Sha256: string;
+		Url: string;
+		UserId?: string;
+	}> = new Map();
+	
+	public PreSignedFetchedUrls: Map<string, {
+		Expire: number; // Default should be around 6 hours
+		Name: string;
+		Type?: string;
+		Url: string;
+	}> = new Map();
+
 	public Args: typeof SupportedArgs = ProcessArgs(SupportedArgs as unknown as string[])
 		.Valid as unknown as typeof SupportedArgs;
 
@@ -168,6 +185,20 @@ class App {
 				},
 			},
 		]);
+
+		setInterval(() => {
+			for (const [Key, Value] of this.PreSignedUrls) {
+				if (Value.Expires < Date.now()) {
+					this.PreSignedUrls.delete(Key);
+				}
+			}
+
+			for (const [Key, Value] of this.PreSignedFetchedUrls) {
+				if (Value.Expire < Date.now()) {
+					this.PreSignedFetchedUrls.delete(Key);
+				}
+			}
+		}, 1e3) // every second (1000ms)
 	}
 
 	public async Init(): Promise<void> {

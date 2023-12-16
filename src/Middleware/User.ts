@@ -104,7 +104,7 @@ const User = (options: UserMiddleware) => {
 					UserId: Encryption.Encrypt(DecodedToken.Snowflake),
 				},
 				{
-					fields: ["tokens"],
+					fields: ["tokens", "max_file_upload_size"],
 				},
 			);
 
@@ -304,6 +304,7 @@ const User = (options: UserMiddleware) => {
 				Id: CompleteDecrypted.UserId,
 				Password: CompleteDecrypted.Password,
 				Guilds: CompleteDecrypted.Guilds ?? [],
+				MaxFileSize: UsersSettings.MaxFileUploadSize,
 			} as ExpressUser;
 
 			next();

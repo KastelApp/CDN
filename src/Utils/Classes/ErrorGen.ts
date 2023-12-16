@@ -145,6 +145,18 @@ const ErrorGen = {
 	ServiceUnavailable: () => {
 		return new HTTPErrors(5_000);
 	},
+	/*
+	 * Used for when the file you are trying to upload is too large 
+	 */
+	FileTooLarge: () => {
+		return new HTTPErrors(5_001);
+	},
+	/*
+	 * Used when the file you are trying to upload is expired
+	*/
+	FileExpired: () => {
+		return new HTTPErrors(5_002);
+	},
 };
 
 export default ErrorGen;

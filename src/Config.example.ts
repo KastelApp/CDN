@@ -14,11 +14,16 @@ import type {
 	ScyllaDB as ScyllaDBConfigType,
 	Server as ServerConfigType,
 	Config as ConfigType,
+	S3Config,
 } from "./Types/ConfigTypes";
 
 const Server: ServerConfigType = {
 	Port: 62_250,
 	Domain: "kastelapp.com",
+	Forwarder: {
+		Domain: "media.kastelapp.com",
+		Secret: ""
+	},
 	Secure: true, // https or http
 	CloudflareAccessOnly: false, // If you are behind cloudflare and have a cloudflare worker forwarding the requests to the server then set this to true
 	StrictRouting: true,
@@ -54,17 +59,57 @@ const ScyllaDB: ScyllaDBConfigType = {
 	NetworkTopologyStrategy: {},
 };
 
+const S3: S3Config = {
+	Region: "us-east-1",
+	// We use 4 users, 2 for guild stuff (files and such) and 2 for User stuff (avatars and such (guild avatars are included in this))
+	// We do one user for fetching and deleting, and one for uploading
+	// This is due to other projects / stuff that only need specific permissions
+	Users: [
+		{
+			Type: "Guild",
+			Bucket: "my-awesome-bucket",
+			AcessKey: "",
+			Permissions: ["Delete", "Fetch"],
+			SecretKey: ""
+		},
+		{
+			Type: "Guild",
+			Bucket: "my-awesome-bucket",
+			AcessKey: "",
+			Permissions: ["Upload"],
+			SecretKey: ""
+		},
+		{
+			Type: "User",
+			Bucket: "my-awesome-bucket",
+			AcessKey: "",
+			Permissions: ["Delete", "Fetch"],
+			SecretKey: ""
+		},
+		{
+			Type: "User",
+			Bucket: "my-awesome-bucket",
+			AcessKey: "",
+			Permissions: ["Upload"],
+			SecretKey: ""
+		}
+	]
+};
+
+
 const Config: ConfigType = {
 	Server,
 	Encryption,
 	ScyllaDB,
+	S3
 };
 
-export { Config, Server, Encryption, ScyllaDB };
+export { Config, Server, Encryption, ScyllaDB, S3 };
 
 export default {
 	Config,
 	Server,
 	Encryption,
 	ScyllaDB,
+	S3
 };

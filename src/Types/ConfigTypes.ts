@@ -15,6 +15,10 @@ import type * as Sentry from "@sentry/node";
 export interface Server {
 	CloudflareAccessOnly: boolean;
 	Domain: string;
+	Forwarder: { // for the cf worker
+		Domain: string;
+		Secret: string;
+	}
 	LocalIps?: string[];
 	Port?: number | string;
 	Secure: boolean;
@@ -48,8 +52,29 @@ export interface ScyllaDB {
 	Username: string;
 }
 
+
+interface IAMUser<T = "Guild" | "User"> {
+	AcessKey: string;
+	Bucket: string;
+	Permissions: ("All" | "Delete" | "Fetch" | "List" | "Upload")[];
+	SecretKey: string;
+	Type: T;
+}
+
+export interface S3Config {
+	Region: string;
+	Users: [
+		IAMUser<"Guild">,
+		IAMUser<"Guild">,
+		IAMUser<"User">,
+		IAMUser<"User">,
+	]
+}
+
+
 export interface Config {
 	Encryption: Encryption;
+	S3: S3Config
 	ScyllaDB: ScyllaDB;
 	Server: Server;
 }

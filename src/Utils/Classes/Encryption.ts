@@ -137,6 +137,14 @@ class Encryption {
 
 		return items;
 	}
+	
+	public static SignedSha256(data: string): string {
+		const hash = crypto.createHash("sha256");
+
+		hash.update(Encryption.Encrypt(data));
+
+		return hash.digest("hex");
+	}
 }
 
 export default Encryption;

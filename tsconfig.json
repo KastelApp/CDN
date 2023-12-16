@@ -35,7 +35,10 @@
 		"noEmit": true,
 		"allowImportingTsExtensions": true,
 		"moduleDetection": "force",
-		"noErrorTruncation": true // darkerink: this is just so I can see the full types
+		"noErrorTruncation": true, // darkerink: this is just so I can see the full types
+		"paths": {
+			"@/*": ["./src/*"],
+		}
 	},
 	"include": ["src/**/*", "scripts/**/*"],
 	"exclude": [".github"]
