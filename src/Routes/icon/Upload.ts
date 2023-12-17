@@ -48,7 +48,7 @@ export default class Main extends Route {
 		this.Routes = ["/upload"];
         
         // max icon size is 5MB's
-        this.MaxIconSize = 1_024 * 1_024 * 5;
+        this.MaxIconSize = 1_024 * 5;
 	}
 
 	public override async Request(Req: Request<any, any, UploadBody>, Res: Response): Promise<void> {
