@@ -276,12 +276,12 @@ class App {
 
 				this.Logger.error(`Unhandled Rejection, \n${reason?.stack ? reason.stack : reason}`);
 			});
-
+			
 		this.ExpressApp.use(cors())
 			.use(bodyParser.json())
 			.use(bodyParser.urlencoded({ extended: true }))
 			.use(bodyParser.raw())
-			.disable("x-powered-by");
+			.disable("x-powered-by")
 
 		if (Config.Server.Sentry.Enabled) {
 			this.ExpressApp.use(

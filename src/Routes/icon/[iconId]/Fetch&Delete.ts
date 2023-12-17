@@ -105,11 +105,13 @@ export default class Main extends Route {
 		if (!FoundUrl) {
 			this.App.Logger.debug("Cache not hit, fetching from database")
 			
-			const Fetched = await this.App.Cassandra.Models.File.get({
+			const Fetched = await this.App.Cassandra.Models.File.find({
                 ForId: Encryption.Encrypt(Req.params.iconId), // ForId is due to the fact "iconId" is a guild id OR a user id
 			});
 			
-			if (!Fetched) {
+			const FetchedArray = Fetched.toArray();
+			
+			if (FetchedArray.length === 0) {
 				const Error = ErrorGen.NotFound();
 			
 				this.App.Logger.debug("File not found in the database", Req.params.iconId);
@@ -126,10 +128,12 @@ export default class Main extends Route {
 				return;
 			}
             
-			if (Fetched.Hash !== Encryption.Encrypt(Req.params.hash)) { // You must also know the file name to access it
+			const FoundHash = FetchedArray.find((File) => Encryption.Decrypt(File.Hash as string) === Req.params.hash);
+			
+			if (!FoundHash) { // You must also know the file name to access it
 				const Error = ErrorGen.NotFound();
-				
-				this.App.Logger.debug("File name doesn't match", Req.params.hash, Encryption.Decrypt(Fetched.Name));
+
+				this.App.Logger.debug("User has avatars, but none match the hash", Req.params.hash)
 				
 				Error.AddError({
 					Key: {
@@ -155,7 +159,7 @@ export default class Main extends Route {
 	
 			const Command = new GetObjectCommand({
 				Bucket: PutUser.Bucket,
-				Key: `icons/${Encryption.Decrypt(Fetched.FileId)}`,
+				Key: `icons/${Encryption.Decrypt(FoundHash.FileId)}`,
 			});
             
 			const SignedUrl = await getSignedUrl(Client, Command, {
@@ -167,7 +171,7 @@ export default class Main extends Route {
 				Url: SignedUrl,
 				Expire: Expiry,
 				Name: Req.params.hash,
-                Type: Fetched.Type
+                Type: FoundHash.Type
 			});
 			
 			FoundUrl = this.App.PreSignedFetchedUrls.get(Req.params.iconId);

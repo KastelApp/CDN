@@ -27,38 +27,46 @@ export default class Main extends Route {
 
         this.Methods = ["POST"];
 
-        this.Middleware = [];
+        this.Middleware = [
+        ];
 
         this.AllowedContentTypes = [];
 
         this.Routes = ["/"];
+        
+        this.KillSwitched = true;
     }
 
     public override async Request(Req: Request<any, any, Body>, Res: Response) {
         const SecretHeader = Req.headers.authorization;
-				
+        
 		if (!SecretHeader) {
+            this.App.Logger.debug("No secret header");
+
 			Res.status(500).send("Internal Server Error :(");
 
 			return;
 		}
-		
 
 		const BufferSecret = Buffer.from(SecretHeader);
 		const OurSecret = Buffer.from(this.App.Config.Server.Forwarder.Secret);
 		
 		if (BufferSecret.length !== OurSecret.length) {
+            this.App.Logger.debug("Secret length mismatch");
+            
 			Res.status(500).send("Internal Server Error :(");
 
 			return;
 		}
 		
 		if (!crypto.timingSafeEqual(BufferSecret, OurSecret)) {
+            this.App.Logger.debug("Secret mismatch");
+        
 			Res.status(500).send("Internal Server Error :(");
 
 			return;
 		}
-        
+
         const { File, To } = Req.body;
         
         const Image = sharp(Buffer.from(File, "base64"));
@@ -83,8 +91,10 @@ export default class Main extends Route {
             }
         }
         
+        const buf = (await Image.toBuffer()).toString("base64");
+        
         Res.json({
-            File: (await Image.toBuffer()).toString("base64")
+            File: buf
         })
     }
 }
