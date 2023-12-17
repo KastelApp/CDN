@@ -128,7 +128,7 @@ export default class Main extends Route {
 				return;
 			}
             
-			const FoundHash = FetchedArray.find((File) => Encryption.Decrypt(File.Hash as string) === Req.params.hash);
+			const FoundHash = FetchedArray.find((File) => File.Hash && Encryption.Decrypt(File.Hash) === Req.params.hash);
 			
 			if (!FoundHash) { // You must also know the file name to access it
 				const Error = ErrorGen.NotFound();
