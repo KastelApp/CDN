@@ -20,7 +20,7 @@ export interface Server {
 		Secret: string;
 	}
 	LocalIps?: string[];
-	Port?: number | string;
+	Port: number | string;
 	Secure: boolean;
 	// if true then some routes will require captcha (register, login, etc)
 	Sentry: {

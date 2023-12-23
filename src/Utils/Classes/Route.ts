@@ -1,7 +1,10 @@
-import type { NextFunction, Request, Response } from "express";
+import type { CookieOptions } from "elysia";
+import type { Prettify } from "elysia/types";
+import type { HTTPStatusName } from "elysia/utils";
+import type { GetParams } from "@/Types/Routes.ts";
 import type App from "./App";
 
-type ExpressMethod = "all" | "delete" | "get" | "head" | "options" | "patch" | "post" | "put";
+type Method = "all" | "delete" | "get" | "head" | "options" | "patch" | "post" | "put";
 
 type ContentTypes =
 	| "application/javascript"
@@ -52,74 +55,70 @@ type ContentTypes =
 	| "video/x-ms-wmv"
 	| "video/x-msvideo";
 
-type Methods =
-	| "ALL"
-	| "all"
-	| "DELETE"
-	| "delete"
-	| "GET"
-	| "get"
-	| "HEAD"
-	| "head"
-	| "OPTIONS"
-	| "options"
-	| "PATCH"
-	| "patch"
-	| "POST"
-	| "post"
-	| "PURGE"
-	| "purge"
-	| "PUT"
-	| "put";
+
+type CreateMiddleware<ExtraOptions extends Record<string, any> | string = Record<string, any>> = ExtraOptions;
+
+interface CreateRouteOptions<Route extends string, Body extends Record<string, boolean | number | string | null | undefined> | unknown = unknown> {
+	app: App;
+	body: Body;
+	headers: Record<string, string | null>;
+	params: GetParams<Route>;
+	path: Route;
+	query: Record<string, string | null>;
+	request: globalThis.Request;
+	set: {
+		cookie?: Record<string, Prettify<CookieOptions & {
+			value: string;
+		}>>;
+		headers: Record<string, string> & {
+			"Set-Cookie"?: string[] | string;
+		};
+		redirect?: string;
+		status?: HTTPStatusName | number;
+	};
+	store: {};
+}
+
+
+type MiddlewareArray<Arr extends Record<string, unknown>[]> = Arr extends [infer First, ...infer Rest]
+	? First extends Record<string, unknown>
+	? Rest extends Record<string, unknown>[]
+	? CreateMiddleware<First> & MiddlewareArray<Rest>
+	: never
+	: never
+	: {};
+
+type CreateRoute<Route extends string, Body extends Record<string, boolean | number | string | null | undefined> | unknown = unknown, MiddlewareSettings extends Record<string, unknown>[] = []> = CreateRouteOptions<Route, Body> & MiddlewareArray<MiddlewareSettings>;
 
 class Route {
 	public readonly App: App;
 
-	public Methods: Methods[];
-
-	public Middleware: ((req: Request, res: Response, next: NextFunction) => void)[];
+	public Middleware: ((req: CreateRouteOptions<string, {}>) => CreateMiddleware | Promise<CreateMiddleware>)[];
 
 	public AllowedContentTypes: ContentTypes[];
 
-	public Routes: string[];
+	public Route: string;
 
 	public KillSwitched: boolean; // KillSwitched routes will be populated in the routes, though when someone tries to use it, we'll return a 503 error (default is false)
 
 	public constructor(App: App) {
 		this.App = App;
 
-		this.Methods = ["GET"];
-
-		this.Middleware = [];
-
 		this.AllowedContentTypes = [];
 
-		this.Routes = [];
+		this.Route = "";
 
 		this.KillSwitched = false;
+
+		this.Middleware = [];
 	}
 
-	public PreRun(Req: Request, Res: Response): boolean {
-		if (Req || Res) {
-			// Not implemented
-		}
 
-		return true;
-	}
-
-	public Request(Req: Request, Res: Response) {
-		if (this.App || Req || Res) {
-			// Not implemented
-		}
-	}
-
-	public Finish(Res: Response, Status: number, Data: Date) {
-		if (this.App || Res || Status || Data) {
-			// Not implemented
-		}
+	public Request(req: any) {
+		return req;
 	}
 }
 
 export default Route;
 
-export type { Route, Methods, ExpressMethod, ContentTypes };
+export type { Route, Method, ContentTypes, CreateRouteOptions, CreateRoute, CreateMiddleware };

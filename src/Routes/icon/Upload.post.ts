@@ -13,11 +13,12 @@ import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import {
 	getSignedUrl,
 } from "@aws-sdk/s3-request-presigner";
-import type { Request, Response } from "express";
+import type { UserMiddlewareType } from "@/Middleware/User.ts";
 import User from "@/Middleware/User.ts";
 import type App from "@/Utils/Classes/App";
 import Encryption from "@/Utils/Classes/Encryption.ts";
 import ErrorGen from "@/Utils/Classes/ErrorGen.ts";
+import type { CreateRoute } from "@/Utils/Classes/Route.ts";
 import Route from "@/Utils/Classes/Route.ts";
 import T from "@/Utils/TypeCheck.ts";
 
@@ -26,13 +27,11 @@ interface UploadBody {
     GuildId?: string;
 }
 
-export default class Main extends Route {
+export default class Upload extends Route {
     private readonly MaxIconSize: number;
 	
     public constructor(App: App) {
 		super(App);
-
-		this.Methods = ["POST"];
 
 		this.Middleware = [
 			User({
@@ -45,26 +44,26 @@ export default class Main extends Route {
 
 		this.AllowedContentTypes = [];
 
-		this.Routes = ["/upload"];
+		this.Route = "/upload"
         
         // max icon size is 5MB's
         this.MaxIconSize = 1_024 * 5;
 	}
 
-	public override async Request(Req: Request<any, any, UploadBody>, Res: Response): Promise<void> {
+	public override async Request({ set, user, body }: CreateRoute<"/upload", UploadBody, [UserMiddlewareType]>) {
 		const PutUser = this.App.Config.S3.Users.find((User) => User.Type === "User" && User.Permissions.some((Permission) => Permission === "Upload" || Permission === "All"));
 
 		if (!PutUser) {
-			Res.status(500).send("Internal Server Error :(");
-
 			this.App.Logger.error("No user found with permissions to upload files to the guild bucket.");
 
-			return;
+            set.status = 500;
+            
+			return "Internal Server Error :(";
 		}
 		
 		const Invalidrequest = ErrorGen.InvalidField();
 		
-		if (!T(Req.body.FileSize, "number")) {
+		if (!T(body.FileSize, "number")) {
 			Invalidrequest.AddError({
 				FileSize: {
 					Code: "InvalidType",
@@ -73,7 +72,7 @@ export default class Main extends Route {
 			});
 		}
         
-        if (Req.body.GuildId && !T(Req.body.GuildId, "string") || Req.body.GuildId && !Req.user.Guilds.includes(Req.body.GuildId)) {
+        if (body.GuildId && !T(body.GuildId, "string") || body.GuildId && !user.Guilds.includes(body.GuildId)) {
             Invalidrequest.AddError({
                 GuildId: {
                     Code: "InvalidType",
@@ -84,12 +83,12 @@ export default class Main extends Route {
         
 		
 		if (Object.keys(Invalidrequest.Errors).length > 0) {
-			Res.status(400).send(Invalidrequest.toJSON());
-
-			return;
+            set.status = 400;
+            
+            return Invalidrequest.toJSON();
 		}
 		
-		if (Req.body.FileSize > this.MaxIconSize) {
+		if (body.FileSize > this.MaxIconSize) {
 			const Error = ErrorGen.FileTooLarge();
 
 			Error.AddError({
@@ -99,13 +98,13 @@ export default class Main extends Route {
 				}
 			});
 
-			Res.status(400).send(Error.toJSON());
-
-			return;
+            set.status = 400;
+            
+            return Error.toJSON();
 		}
 
 		const Id = this.App.Snowflake.Generate();
-        const ForId = Req.body.GuildId ?? Req.user.Id;
+        const ForId = body.GuildId ?? user.Id;
 		
 		const Client = new S3Client({
 			region: this.App.Config.S3.Region,
@@ -125,7 +124,7 @@ export default class Main extends Route {
 		});
 		
 		const Expires = Date.now() + 2_700_000; // 45 minutes
-		const Key = Encryption.Encrypt(`${Id}-${Req.user.Id}`);
+		const Key = Encryption.Encrypt(`${Id}-${user.Id}`);
 		
 		this.App.PreSignedUrls.set(
 			Id,
@@ -135,7 +134,7 @@ export default class Main extends Route {
 				Url: SignedUrl,
 				// Sha256 is the hash of the Encrypted Id and FileName & the expiration date
 				Sha256: Encryption.SignedSha256(`${Id}-${Key}-${Expires}`),
-                UserId: Req.user.Id
+                UserId: user.Id
 			}
 		)
 		
@@ -144,19 +143,22 @@ export default class Main extends Route {
 		await this.App.Cassandra.Models.File.insert({
 			Deleted: false,
 			FileId: Encryption.Encrypt(Id),
-			Name: Encryption.Encrypt(Req.user.Id),
+			Name: Encryption.Encrypt(user.Id),
 			Uploaded: false, // every day we will purge any non uploaded files
 			UploadedAt: new Date(),
 			Type: "text/plain",
-			UploadedBy: Encryption.Encrypt(Req.user.Id),
+			UploadedBy: Encryption.Encrypt(user.Id),
 			Hash: null,
             ForId: Encryption.Encrypt(ForId)
 		})
 		
-		Res.status(200).json({
-			Url,
-			Id,
-			Expires
-		})
+        
+        set.status = 200;
+        
+        return {
+            Url,
+            Id,
+            Expires
+        }
 	}
 }

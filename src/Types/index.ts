@@ -9,29 +9,6 @@
  * GPL 3.0 Licensed
  */
 
-import type FlagFields from "../Utils/Classes/BitFields/Flags";
-
-export interface ExpressUser {
-	Bot: boolean;
-	Email: string;
-	FlagsUtil: FlagFields;
-	Guilds: string[];
-	Id: string;
-	MaxFileSize: number;
-	Password: string;
-	Token: string;
-}
 
 
-export type ExpressMethodCap = "DELETE" | "GET" | "HEAD" | "OPTIONS" | "PATCH" | "POST" | "PUT";
-
-declare global {
-	namespace Express {
-		interface Request {
-			clientIp: string;
-			fourohfourit(): true;
-			methodi: ExpressMethodCap;
-			user: ExpressUser;
-		}
-	}
-}
+export type ExpressMethodCap = "delete" | "get" | "head" | "options" | "patch" | "post" | "put";

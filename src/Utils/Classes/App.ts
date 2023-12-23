@@ -3,12 +3,11 @@ import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import process from "node:process";
 import { URL } from "node:url";
+import { cors } from "@elysiajs/cors";
+import { serverTiming } from "@elysiajs/server-timing";
 import { Snowflake } from "@kastelll/util";
 import * as Sentry from "@sentry/node";
-import bodyParser from "body-parser";
-import cors from "cors";
-import type { NextFunction, Request, Response } from "express";
-import express from "express";
+import { Elysia } from "elysia";
 import { type SimpleGit, simpleGit } from "simple-git";
 import { Config } from "../../Config.ts";
 import Constants, { Relative } from "../../Constants.ts";
@@ -16,10 +15,9 @@ import type { ExpressMethodCap } from "../../Types/index.ts";
 import ProcessArgs from "../ProcessArgs.ts";
 import Connection from "./Connection.ts";
 import ErrorGen from "./ErrorGen.ts";
-import { IpUtils } from "./IpUtils.ts";
 import CustomLogger from "./Logger.ts";
 import Repl from "./Repl.ts";
-import type { ContentTypes, ExpressMethod } from "./Route.ts";
+import type { ContentTypes } from "./Route.ts";
 import RouteBuilder from "./Route.ts";
 import SystemInfo from "./SystemInfo.ts";
 
@@ -30,15 +28,13 @@ const SupportedArgs = ["debug", "skip-online-check", "behind-proxy", "no-ip-chec
 class App {
 	private RouteDirectory: string = join(new URL(".", import.meta.url).pathname, "../../Routes");
 
-	public ExpressApp: express.Application;
+	public ElysiaApp: Elysia;
 
 	public Ready: boolean = false;
 
 	public Snowflake: Snowflake;
 
 	public Cassandra: Connection;
-
-	public IpUtils: IpUtils;
 
 	public Sentry: typeof Sentry;
 
@@ -53,6 +49,7 @@ class App {
 	public Routes: {
 		default: RouteBuilder;
 		directory: string;
+		method: ExpressMethodCap;
 		route: string;
 	}[] = [];
 
@@ -94,7 +91,7 @@ class App {
 		Url: string;
 		UserId?: string;
 	}> = new Map();
-	
+
 	public PreSignedFetchedUrls: Map<string, {
 		Expire: number; // Default should be around 6 hours
 		Name: string;
@@ -106,7 +103,7 @@ class App {
 		.Valid as unknown as typeof SupportedArgs;
 
 	public constructor() {
-		this.ExpressApp = express();
+		this.ElysiaApp = new Elysia();
 
 		this.Snowflake = new Snowflake(Constants.Snowflake);
 
@@ -119,8 +116,6 @@ class App {
 			Config.ScyllaDB.DurableWrites,
 			Config.ScyllaDB.CassandraOptions,
 		);
-
-		this.IpUtils = new IpUtils();
 
 		this.Sentry = Sentry;
 
@@ -151,7 +146,7 @@ class App {
 						optional: true,
 					},
 				],
-				cb: () => {},
+				cb: () => { },
 			},
 			{
 				name: "version",
@@ -160,8 +155,7 @@ class App {
 				flags: [],
 				cb: () => {
 					console.log(
-						`You're running version ${
-							Relative.Version ? `v${Relative.Version}` : "Unknown version"
+						`You're running version ${Relative.Version ? `v${Relative.Version}` : "Unknown version"
 						} of Kastel's Backend. Bun version ${Bun.version}`,
 					);
 				},
@@ -198,15 +192,13 @@ class App {
 					this.PreSignedFetchedUrls.delete(Key);
 				}
 			}
-		}, 1e3) // every second (1000ms)
+		}, 1e3); // every second (1000ms)
 	}
 
 	public async Init(): Promise<void> {
 		this.Logger.hex("#ca8911")(
-			`\n██╗  ██╗ █████╗ ███████╗████████╗███████╗██╗     \n██║ ██╔╝██╔══██╗██╔════╝╚══██╔══╝██╔════╝██║     \n█████╔╝ ███████║███████╗   ██║   █████╗  ██║     \n██╔═██╗ ██╔══██║╚════██║   ██║   ██╔══╝  ██║     \n██║  ██╗██║  ██║███████║   ██║   ███████╗███████╗\n╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚══════╝╚══════╝\nA Chatting Application\nRunning version ${
-				Relative.Version ? `v${Relative.Version}` : "Unknown version"
-			} of Kastel's CDN. Bun version ${
-				Bun.version
+			`\n██╗  ██╗ █████╗ ███████╗████████╗███████╗██╗     \n██║ ██╔╝██╔══██╗██╔════╝╚══██╔══╝██╔════╝██║     \n█████╔╝ ███████║███████╗   ██║   █████╗  ██║     \n██╔═██╗ ██╔══██║╚════██║   ██║   ██╔══╝  ██║     \n██║  ██╗██║  ██║███████║   ██║   ███████╗███████╗\n╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚══════╝╚══════╝\nA Chatting Application\nRunning version ${Relative.Version ? `v${Relative.Version}` : "Unknown version"
+			} of Kastel's CDN. Bun version ${Bun.version
 			}\nIf you would like to support this project please consider donating to https://opencollective.com/kastel\n`,
 		);
 
@@ -238,29 +230,6 @@ class App {
 			this.Logger.warn("whar");
 		}
 
-		if (Config.Server.Sentry.Enabled) {
-			Sentry.init({
-				...Config.Server.Sentry.OtherOptions,
-				dsn: Config.Server.Sentry.Dsn,
-				tracesSampleRate: Config.Server.Sentry.TracesSampleRate,
-				integrations: (integrations) => {
-					return [
-						...integrations.map((integration) => {
-							if (integration.name === "OnUncaughtException") {
-								return new Sentry.Integrations.OnUncaughtException({
-									exitEvenIfOtherHandlersAreRegistered: false,
-								});
-							} else {
-								return integration;
-							}
-						}),
-						new Sentry.Integrations.Http({ tracing: true }),
-						new Sentry.Integrations.Express({ app: this.ExpressApp }),
-					];
-				},
-			});
-		}
-
 		process
 			.on("uncaughtException", (err) => {
 				if (Config.Server.Sentry.Enabled) {
@@ -276,85 +245,30 @@ class App {
 
 				this.Logger.error(`Unhandled Rejection, \n${reason?.stack ? reason.stack : reason}`);
 			});
-			
-		this.ExpressApp.use(cors())
-			.use(bodyParser.json())
-			.use(bodyParser.urlencoded({ extended: true }))
-			.use(bodyParser.raw())
-			.disable("x-powered-by")
 
-		if (Config.Server.Sentry.Enabled) {
-			this.ExpressApp.use(
-				Sentry.Handlers.requestHandler({
-					...Config.Server.Sentry.RequestOptions,
-				}),
-			)
-				.use(Sentry.Handlers.tracingHandler())
-				.use(Sentry.Handlers.errorHandler());
-		}
+		this.ElysiaApp.use(cors())
+			.use(serverTiming())
+			.onError(({ code, request, path }) => {
+				if (code === "NOT_FOUND") {
+					const Error = ErrorGen.NotFound();
 
-		// eslint-disable-next-line promise/prefer-await-to-callbacks -- (Its not)
-		this.ExpressApp.use((error: Error, _: Request, res: Response, __: NextFunction) => {
-			// @ts-expect-error -- express being weird
-			if (error instanceof SyntaxError && error.status === 400 && "body" in error) {
-				this.Logger.error("Someone sent invalid JSON", error);
+					Error.AddError({
+						NotFound: {
+							Code: "NotFound",
+							Message: `Could not find route for ${request.method} ${path}`,
+						},
+					});
 
-				res.status(500).json({
-					Message: `Invalid JSON (${error.message})`,
-				});
-			} else {
-				res.status(500).json({
-					Message: "Internal Server Error :(",
-				});
-			}
-		});
+					return Error.toJSON();
+				}
 
-		this.ExpressApp.use(async (req, res, next) => {
-			req.clientIp = IpUtils.GetIp(req);
-			req.methodi = req.method as ExpressMethodCap;
+				if (code === "INTERNAL_SERVER_ERROR") {
+					return "Internal Server Error :(";
+				}
 
-			req.fourohfourit = () => {
-				const Error = ErrorGen.NotFound();
+				return "Unknown error";
+			});
 
-				Error.AddError({
-					NotFound: {
-						Code: "NotFound",
-						Message: `Could not find route for ${req.method} ${req.path}`,
-					},
-				});
-
-				res.status(404).json(Error.toJSON());
-
-				return true;
-			};
-
-			if (
-				Config.Server.CloudflareAccessOnly &&
-				!(await IpUtils.isCloudflareIp(req.headers["x-forwarded-for"] as string))
-			) {
-				req.fourohfourit();
-
-				return;
-			}
-
-			// we have a hard limit of 1mb for requests, any higher and we 408 it
-			if (req.socket.bytesRead > 1e6) {
-				const Error = ErrorGen.TooLarge();
-
-				Error.AddError({
-					TooLarge: {
-						Code: "TooLarge",
-						Message: "Request body too large",
-					},
-				});
-
-				res.status(408).json(Error.toJSON());
-
-				return;
-			}
-
-			next();
-		});
 
 		// guilds with params should be at the bottom as ones without them take priority
 		const LoadedRoutes = (await this.LoadRoutes()).sort((a, b) => {
@@ -371,106 +285,71 @@ class App {
 
 		for (const route of LoadedRoutes) {
 			this.Logger.verbose(
-				`Loaded "${route.route.length === 0 ? "/" : route.route}" [${route.default.Methods.join(", ")}]`,
+				`Loaded "${route.route.length === 0 ? "/" : route.route}" [${route.method}]`,
 			);
 		}
 
 		this.Logger.info(`Loaded ${LoadedRoutes.length} routes`);
 
+
 		for (const Route of LoadedRoutes) {
-			for (const Method of Route.default.Methods) {
-				this.ExpressApp[Method.toLowerCase() as ExpressMethod](
-					Route.route,
-					...Route.default.Middleware,
-					(req: Request, res: Response) => {
-						this.Logger.verbose(
-							`Request for ${req.path} (${req.method}) ${
-								req?.user?.Id ? `from ${req.user.Id}` : "from a logged out user."
-							}`,
-						);
+			this.ElysiaApp[Route.method.toLowerCase() as ExpressMethodCap](Route.route, async ({ body, headers, params, path, query, request, set, store }) => {
+				const FinishedMiddlewares = [];
+				
+				for (const Middleware of Route.default.Middleware) {
+					const Finished = await Middleware({
+						app: this,
+						body: body as {},
+						headers,
+						params,
+						path,
+						query,
+						request,
+						set,
+						store
+					});
+										
+					if (set.status !== 200) {
+						return Finished;
+					}
+					
+					FinishedMiddlewares.push(Finished);
+				}
+				
+				if (Route.default.AllowedContentTypes.length > 0 && !Route.default.AllowedContentTypes.includes((headers["content-type"] ?? "text/plain") as ContentTypes)) {
+					const Error = ErrorGen.InvalidContentType();
 
-						const ContentType = req.headers["content-type"] ?? "";
+					Error.AddError({
+						ContentType: {
+							Code: "InvalidContentType",
+							Message: `Invalid Content-Type header, Expected (${Route.default.AllowedContentTypes.join(
+								", ",
+							)}), Got (${headers["content-type"]})`,
+						},
+					});
 
-						res.on("finish", () => {
-							this.Logger.verbose(
-								`Request for ${req.path} (${req.method}) ${
-									req?.user?.Id ? `from ${req.user.Id}` : "from a logged out user."
-								} finished with status code ${res.statusCode}`,
-							);
-
-							Route.default.Finish(res, res.statusCode, new Date());
-						});
-
-						if (Route.default.KillSwitched) {
-							const Error = ErrorGen.ServiceUnavailable();
-
-							Error.AddError({
-								ServiceUnavailable: {
-									Code: "ServiceUnavailable",
-									Message: "This endpoint is currently disabled",
-								},
-							});
-
-							res.status(503).json(Error.toJSON());
-
-							return;
-						}
-
-						if (
-							Route.default.AllowedContentTypes.length > 0 &&
-							!Route.default.AllowedContentTypes.includes(ContentType as ContentTypes)
-						) {
-							const Error = ErrorGen.InvalidContentType();
-
-							Error.AddError({
-								ContentType: {
-									Code: "InvalidContentType",
-									Message: `Invalid Content-Type header, Expected (${Route.default.AllowedContentTypes.join(
-										", ",
-									)}), Got (${ContentType})`,
-								},
-							});
-
-							res.status(400).json(Error);
-
-							return;
-						}
-
-						const PreRan = Route.default.PreRun(req, res);
-
-						if (!PreRan) {
-							// note: we expect that it returns a response itself (also PreRun should only be used for special routes not used all the time)
-							return;
-						}
-
-						// @ts-expect-error -- im tired
-						// eslint-disable-next-line promise/prefer-await-to-callbacks, promise/prefer-await-to-then, @typescript-eslint/no-confusing-void-expression
-						Route.default.Request(req, res)?.catch((error: Error) => {
-							this.Logger.error(error);
-
-							if (!res.headersSent) {
-								res.status(500).send("Internal Server Error :(");
-							}
-						});
-					},
-				);
-			}
+					set.status = 400;
+					set.headers["Content-Type"] = "application/json";
+					
+					return Error.toJSON();
+				}
+				
+				return await Route.default.Request({
+					app: this,
+					body: body as {},
+					headers,
+					params,
+					path,
+					query,
+					request,
+					set,
+					store,
+					...FinishedMiddlewares.reduce((a, b) => ({ ...a, ...b }), {})
+				}) as Promise<unknown>;
+			})
 		}
 
-		this.ExpressApp.all("*", (req, res) => {
-			const Error = ErrorGen.NotFound();
-
-			Error.AddError({
-				NotFound: {
-					Code: "NotFound",
-					Message: `Could not find route for ${req.method} ${req.path}`,
-				},
-			});
-
-			res.status(404).json(Error.toJSON());
-		});
-
-		this.ExpressApp.listen(Config.Server.Port, () => {
+		this.ElysiaApp.listen(Config.Server.Port, () => {
 			this.Logger.info(`Listening on port ${Config.Server.Port}`);
 		});
 	}
@@ -501,18 +380,20 @@ class App {
 				continue;
 			}
 
-			for (const SubRoute of RouteInstance.Routes) {
-				const fixedRoute = (
-					(Route.split(this.RouteDirectory)[1]?.replaceAll(/\\/g, "/").split("/").slice(0, -1).join("/") ?? "") +
-					(SubRoute as string)
-				).replace(/\/$/, "");
+			const fixedRoute = (
+				(Route.split(this.RouteDirectory)[1]?.replaceAll(/\\/g, "/").split("/").slice(0, -1).join("/") ?? "") +
+				(RouteInstance.Route as string)
+			).replace(/\/$/, "");
 
-				this.Routes.push({
-					default: RouteInstance,
-					directory: Route,
-					route: fixedRoute.replaceAll(/\[([^\]]+)]/g, ":$1"), // eslint-disable-line prefer-named-capture-group
-				});
-			}
+			// get the method. each file is like .get.ts or .post.ts
+			const Method = (Route.split(".").slice(-2, -1)[0]?.toUpperCase() ?? "GET") as ExpressMethodCap;
+			
+			this.Routes.push({
+				default: RouteInstance,
+				directory: Route,
+				route: fixedRoute.replaceAll(/\[([^\]]+)]/g, ":$1").length === 0 ? "/" : fixedRoute.replaceAll(/\[([^\]]+)]/g, ":$1"),  // eslint-disable-line prefer-named-capture-group
+				method: Method,
+			});
 		}
 
 		return this.Routes;
@@ -567,8 +448,7 @@ class App {
 			"Git Info:",
 			`Branch: ${this.GitBranch}`,
 			`Commit: ${GithubInfo.CommitShort ?? GithubInfo.Commit}`,
-			`Status: ${
-				this.Clean ? "Clean" : "Dirty - You will not be given support if something breaks with a dirty instance"
+			`Status: ${this.Clean ? "Clean" : "Dirty - You will not be given support if something breaks with a dirty instance"
 			}`,
 			this.Clean ? "" : "=".repeat(40),
 			`${this.Clean ? "" : "Changed Files:"}`,
