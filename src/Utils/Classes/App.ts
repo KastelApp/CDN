@@ -283,18 +283,16 @@ class App {
 			return 0;
 		});
 
-		for (const route of LoadedRoutes) {
-			this.Logger.verbose(
-				`Loaded "${route.route.length === 0 ? "/" : route.route}" [${route.method}]`,
-			);
-		}
-
-		this.Logger.info(`Loaded ${LoadedRoutes.length} routes`);
-
 
 		for (const Route of LoadedRoutes) {
+			this.Logger.verbose(
+				`Loaded "${Route.route.length === 0 ? "/" : Route.route}" [${Route.method}]`,
+			);
+			
 			this.ElysiaApp[Route.method.toLowerCase() as ExpressMethodCap](Route.route, async ({ body, headers, params, path, query, request, set, store }) => {
 				const FinishedMiddlewares = [];
+				
+				this.Logger.info(`Request to ${Route.route} [${Route.method}]`);
 				
 				for (const Middleware of Route.default.Middleware) {
 					const Finished = await Middleware({
@@ -310,6 +308,8 @@ class App {
 					});
 										
 					if (set.status !== 200) {
+						this.Logger.info(`Request to ${Route.route} [${Route.method}] finished with status ${set.status} from middleware ${Middleware.name}`);
+				
 						return Finished;
 					}
 					
@@ -331,10 +331,12 @@ class App {
 					set.status = 400;
 					set.headers["Content-Type"] = "application/json";
 					
+					this.Logger.info(`Request to ${Route.route} [${Route.method}] finished with status ${set.status} from invalid content type`);
+					
 					return Error.toJSON();
 				}
 				
-				return await Route.default.Request({
+				const Requested = await Route.default.Request({
 					app: this,
 					body: body as {},
 					headers,
@@ -346,8 +348,14 @@ class App {
 					store,
 					...FinishedMiddlewares.reduce((a, b) => ({ ...a, ...b }), {})
 				}) as Promise<unknown>;
+				
+				this.Logger.info(`Request to ${Route.route} [${Route.method}] finished with status ${set.status}`);
+				
+				return Requested;
 			})
 		}
+		
+		this.Logger.info(`Loaded ${LoadedRoutes.length} routes`);
 
 		this.ElysiaApp.listen(Config.Server.Port, () => {
 			this.Logger.info(`Listening on port ${Config.Server.Port}`);
